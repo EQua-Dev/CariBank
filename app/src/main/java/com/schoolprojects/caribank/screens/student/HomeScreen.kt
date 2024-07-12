@@ -1,4 +1,4 @@
-package com.schoolprojects.corrreps.screens.student
+package com.schoolprojects.caribank.screens.student
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,10 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.schoolprojects.corrreps.components.ExpandableCard
-import com.schoolprojects.corrreps.network.getStudentInfo
+import com.schoolprojects.caribank.components.ExpandableCard
 import com.schoolprojects.corrreps.utils.Common
-import com.schoolprojects.corrreps.utils.Common.mAuth
 import com.schoolprojects.corrreps.viewmodels.StudentHomeViewModel
 
 @Composable
@@ -44,7 +42,7 @@ fun StudentHomeScreen(
 
 
     LaunchedEffect(key1 = null) {
-        getStudentInfo(
+       /* getStudentInfo(
             mAuth.uid!!,
             onLoading = {
                 studentHomeViewModel.updateLoadingStatus(it)
@@ -54,7 +52,7 @@ fun StudentHomeScreen(
             },
             onStudentNotFetched = { error ->
                 errorMessage.value = error
-            })
+            })*/
     }
 
     LazyColumn(modifier = Modifier.padding(8.dp)) {
@@ -73,7 +71,7 @@ fun StudentHomeScreen(
                 Column {
                     Text(text = "Level: ${studentData.studentCurrentLevel}")
                     Text(text = "Semester: ${studentData.studentCurrentSemester}")
-                    Text(text = studentData.studentCGPA, fontWeight = FontWeight.Bold)
+                    Text(text = studentData.studentRegNo, fontWeight = FontWeight.Bold)
                 }
             }
         }

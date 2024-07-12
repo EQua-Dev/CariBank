@@ -34,7 +34,7 @@ import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.screens.auth.ForgotPasswordScreen
 import com.schoolprojects.caribank.screens.auth.SignUpScreen
 import com.schoolprojects.corrreps.screens.student.SemesterScreen
-import com.schoolprojects.corrreps.screens.student.StudentHomeScreen
+import com.schoolprojects.caribank.screens.student.StudentHomeScreen
 import org.devstrike.persacg.presentation.screens.holder.HolderViewModel
 import com.schoolprojects.corrreps.utils.getDp
 
