@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "833624508330",
+    "project_id": "caribank-a1070",
+    "storage_bucket": "caribank-a1070.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833624508330:android:57016bb249f7cb56d58dd3",
+        "android_client_info": {
+          "package_name": "com.schoolprojects.caribank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeLfnbg2pGvpvX5kc08kqSwZ3Azod-p2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CariBank</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="remembered_password">"Back to Login "</string>
+    <string name="student_home">Student Home</string>
+    <string name="semester_screen">Semester Screen</string>
+</resources>
