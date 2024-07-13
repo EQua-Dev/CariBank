@@ -1,20 +1,25 @@
-package com.schoolprojects.corrreps.viewmodels
+package com.schoolprojects.caribank.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.Student
-import com.schoolprojects.corrreps.utils.Common
-import com.schoolprojects.corrreps.utils.Common.mAuth
-import com.schoolprojects.corrreps.utils.Common.studentsCollectionRef
+import com.schoolprojects.caribank.utils.HelpMe
+import com.schoolprojects.caribank.utils.Common
+import com.schoolprojects.caribank.utils.Common.accountsCollectionRef
+import com.schoolprojects.caribank.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.Common.studentsCollectionRef
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,14 +29,17 @@ class AuthViewModel @Inject constructor() : ViewModel() {
     val errorLiveData: LiveData<String>
         get() = _errorLiveData
 
+
     val email = mutableStateOf<String>("")
     val password = mutableStateOf<String>("")
     val passwordStrength =
-        mutableStateOf<AuthViewModel.PasswordStrength>(PasswordStrength.TOO_SHORT)
+        mutableStateOf<PasswordStrength>(PasswordStrength.TOO_SHORT)
     val studentFirstName = mutableStateOf<String>("")
     val studentLastName = mutableStateOf<String>("")
     val matricNo = mutableStateOf<String>("")
     val studentDepartment = mutableStateOf<String>("")
+    val studentSemester = mutableStateOf<String>("")
+    val studentLevel = mutableStateOf<String>("")
 
     val gender = mutableStateOf<String>("")
     val showLoading = mutableStateOf<Boolean>(false)
@@ -63,6 +71,14 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         this.passwordStrength.value = passwordStrength(value)
     }
 
+    fun updateStudentLevel(value: String) {
+        this.studentLevel.value = value
+    }
+
+    fun updateStudentSemester(value: String) {
+        this.studentSemester.value = value
+    }
+
     fun updateStudentDepartment(value: String) {
         this.studentDepartment.value = value
     }
@@ -91,6 +107,10 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         } else if (this.studentLastName.value.isEmpty()) {
             onLoading(false)
             _errorLiveData.value = "Last Name cannot be empty"
+            onStudentNotCreated(errorLiveData.value!!)
+        } else if (this.studentLevel.value.isEmpty()) {
+            onLoading(false)
+            _errorLiveData.value = "Level cannot be empty"
             onStudentNotCreated(errorLiveData.value!!)
         } else if (!isValidMatricNumberFormat(this.matricNo.value)) {
             onLoading(false)
@@ -123,6 +143,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                 }
 
                 PasswordStrength.STRONG -> {
+                    Log.d("TAG", "createStudent: password strong")
                     mAuth.createUserWithEmailAndPassword(this.email.value, this.password.value)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
@@ -136,8 +157,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                                     studentEmail = this.email.value,
                                     studentGender = this.gender.value,
                                     studentDepartment = this.studentDepartment.value,
-                                    studentCurrentLevel = "100",
-                                    studentCurrentSemester = "1",
+                                    studentCurrentLevel = this.studentLevel.value,
                                 )
                                 saveStudent(
                                     newStudent,
@@ -165,35 +185,58 @@ class AuthViewModel @Inject constructor() : ViewModel() {
 
     }
 
-      fun login(
-          onLoading: (isLoading: Boolean) -> Unit,
-          onAuthenticated: (userType: String) -> Unit,
-          onAuthenticationFailed: (error: String) -> Unit
-      ) {
-          onLoading(true)
-          if (this.email.value.isEmpty() || this.password.value.isEmpty()) {
-              onLoading(false)
-              val error = "Some fields are missing"
-              onAuthenticationFailed(error)
-          } else {
-              if (this.email.value == "admin@gmail.com" && this.password.value == "!Admin1234") {
-                  onLoading(false)
-                  onAuthenticated(Common.UserTypes.LECTURER.userType)
-              } else {
-                  this.email.value.let { mAuth.signInWithEmailAndPassword(it, this.password.value) }
-                      .addOnCompleteListener {
-                          if (it.isSuccessful) {
-                              onLoading(false)
-                              onAuthenticated(Common.UserTypes.STUDENT.userType)
-                          } else {
-                              onLoading(false)
+    private fun createAccount(
+        newAccount: Account,
+        onLoading: (isLoading: Boolean) -> Unit,
+        onAccountCreated: () -> Unit,
+        onAccountNotCreated: (error: String) -> Unit
+    ) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            accountsCollectionRef.document(newAccount.accountId).set(newAccount).await()
+            withContext(Dispatchers.Main) {
+                onLoading(false)
+                onAccountCreated()
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                _errorLiveData.value = e.message ?: "Some error occurred"
+                onLoading(false)
+                onAccountNotCreated(errorLiveData.value!!)
+            }
+        }
 
-                              onAuthenticationFailed(it.exception?.message ?: "Some error occurred")
-                          }
-                      }
-              }
-          }
-      }
+    }
+
+    fun login(
+        onLoading: (isLoading: Boolean) -> Unit,
+        onAuthenticated: (userType: String) -> Unit,
+        onAuthenticationFailed: (error: String) -> Unit
+    ) {
+        onLoading(true)
+        if (this.email.value.isEmpty() || this.password.value.isEmpty()) {
+            onLoading(false)
+            val error = "Some fields are missing"
+            onAuthenticationFailed(error)
+        } else {
+            if (this.email.value == "admin@gmail.com" && this.password.value == "!Admin1234") {
+                onLoading(false)
+                onAuthenticated(Common.UserTypes.BANKER.userType)
+            } else {
+                this.email.value.let { mAuth.signInWithEmailAndPassword(it, this.password.value) }
+                    .addOnCompleteListener {
+                        if (it.isSuccessful) {
+                            onLoading(false)
+                            onAuthenticated(Common.UserTypes.STUDENT.userType)
+                        } else {
+                            onLoading(false)
+
+                            onAuthenticationFailed(it.exception?.message ?: "Some error occurred")
+                        }
+                    }
+            }
+        }
+    }
+
     private fun saveStudent(
         studentData: Student,
         onLoading: (isLoading: Boolean) -> Unit,
@@ -204,7 +247,22 @@ class AuthViewModel @Inject constructor() : ViewModel() {
             studentsCollectionRef.document(studentData.studentId).set(studentData).await()
             withContext(Dispatchers.Main) {
                 onLoading(false)
-                onStudentCreated()
+
+                val newAccount = Account(
+                    accountId = UUID.randomUUID().toString(),
+                    accountNumber = HelpMe.generateAccountNumber(),
+                    accountBalance = 0.0,
+                    dateCreated = System.currentTimeMillis().toString(),
+                    accountOwner = studentData.studentId
+                )
+                createAccount(
+                    newAccount,
+                    onLoading = onLoading,
+                    onAccountCreated = onStudentCreated,
+                    onAccountNotCreated = onStudentNotCreated
+                )
+
+                //onStudentCreated()
             }
             //_authStateLiveData.value = DataResult.Success(true)
 
@@ -286,12 +344,12 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         TOO_SHORT
     }
 
-    fun isValidEmail(email: String): Boolean {
+    private fun isValidEmail(email: String): Boolean {
         val emailRegex = Regex("^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,})+\$")
         return emailRegex.matches(email)
     }
 
-    fun isValidMatricNumberFormat(text: String): Boolean {
+    private fun isValidMatricNumberFormat(text: String): Boolean {
         val customFormatRegex = Regex("^CST/\\d{4}/\\d+$")
         if (!customFormatRegex.matches(text)) {
             return false

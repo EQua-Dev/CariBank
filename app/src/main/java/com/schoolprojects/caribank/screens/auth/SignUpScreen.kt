@@ -31,7 +31,7 @@ import com.schoolprojects.caribank.components.DropdownField
 import com.schoolprojects.caribank.components.FlatButton
 import com.schoolprojects.caribank.components.PasswordStrengthIndicator
 import com.schoolprojects.caribank.navigation.Screen
-import com.schoolprojects.corrreps.viewmodels.AuthViewModel
+import com.schoolprojects.caribank.viewmodels.AuthViewModel
 
 @Composable
 fun SignUpScreen(
@@ -54,21 +54,19 @@ fun SignUpScreen(
     val passwordStrength by remember { authViewModel.passwordStrength }
     val selectedDepartment by remember { authViewModel.studentDepartment }
     val selectedGender by remember { authViewModel.gender }
+    val selectedLevel by remember { authViewModel.studentLevel }
+    val selectedSemester by remember { authViewModel.studentSemester }
 
     val departments = listOf(
         "Computer Science",
     )
     val genders = listOf("Male", "Female")
+    val levels = listOf("100", "200", "300", "400")
+    val semesters = listOf("1st", "2nd")
 
 
     val showLoading = remember { authViewModel.showLoading }
 
-
-    val selectedGenderType = remember {
-        mutableStateOf("")
-    }
-
-    val currentSelectedAuthIndex by remember { authViewModel.currentSelectedGenderIndex }
 
 
     Box(modifier = Modifier.padding(12.dp), contentAlignment = Alignment.Center) {
@@ -152,8 +150,19 @@ fun SignUpScreen(
                 placeholder = "School Department"
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DropdownField(
+                selectedValue = selectedLevel,
+                onValueChange = { authViewModel.updateStudentLevel(it) },
+                label = "Level",
+                options = levels,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "Current Level"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
             DropdownField(
                 selectedValue = selectedGender,
                 onValueChange = { authViewModel.updateGender(it) },
@@ -162,8 +171,8 @@ fun SignUpScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = "Gender"
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
 
             FlatButton(
                 text = "Sign Up",

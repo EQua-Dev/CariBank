@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.schoolprojects.caribank.ui.theme.Typography
-import com.schoolprojects.corrreps.utils.Common.Levels
+import com.schoolprojects.caribank.utils.Common.Levels
 
 @Composable
 fun ExpandableCard(level: Levels, onSemesterClicked: (semester: String) -> Unit) {

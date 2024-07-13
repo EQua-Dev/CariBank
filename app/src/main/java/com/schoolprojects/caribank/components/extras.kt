@@ -21,10 +21,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.schoolprojects.caribank.ui.theme.Typography
-import com.schoolprojects.corrreps.viewmodels.AuthViewModel
+import com.schoolprojects.caribank.viewmodels.AuthViewModel
 
 
 @Composable

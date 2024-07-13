@@ -4,18 +4,12 @@
  * Under Awesomeness Studios
  */
 
-package com.schoolprojects.corrreps.utils
+package com.schoolprojects.caribank.utils
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.suspendCancellableCoroutine
 //import org.devstrike.persacg.models.Course
 //import org.devstrike.persacg.models.Lecturer
 //import org.devstrike.persacg.models.RegisteredCourse
@@ -33,7 +27,7 @@ object Common {
 
     enum class UserTypes(val userType: String) {
         STUDENT("Student"),
-        LECTURER("Lecturer"),
+        BANKER("Banker"),
     }
 
     enum class Levels(val level: String){
@@ -45,12 +39,14 @@ object Common {
 
 
 
-    private const val STUDENTS_REF = "Correps Students"
+    private const val STUDENTS_REF = "CariBank Students"
+    private const val ACCOUNTS_REF = "CariBank Accounts"
     private const val LECTURERS_REF = "Correps Lecturers"
     private const val COURSES_REF = "Courses"
     //const val HEALTH_RECORD_REF = "Patrealysis Health Record"
 
     val studentsCollectionRef = Firebase.firestore.collection(STUDENTS_REF)
+    val accountsCollectionRef = Firebase.firestore.collection(ACCOUNTS_REF)
     val lecturersCollectionRef = Firebase.firestore.collection(LECTURERS_REF)
     val coursesCollectionRef = Firebase.firestore.collection(COURSES_REF)
     //val healthRecordCollectionRef = Firebase.firestore.collection(HEALTH_RECORD_REF)

@@ -9,7 +9,6 @@ data class Student(
     val studentGender: String = "",
     val studentDepartment: String = "",
     val studentCurrentLevel: String = "",
-    val studentCurrentSemester: String = "",
     val loanCreditScore: String = "0.0",
 
 )

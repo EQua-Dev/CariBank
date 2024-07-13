@@ -29,7 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.schoolprojects.caribank.screens.auth.LoginScreen
 import com.schoolprojects.corrreps.providers.LocalNavHost
-import com.schoolprojects.corrreps.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.Common.mAuth
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.screens.auth.ForgotPasswordScreen
 import com.schoolprojects.caribank.screens.auth.SignUpScreen
@@ -228,6 +228,13 @@ fun ScaffoldSection(
                 }
 
                 composable(Screen.StudentHome.route) {
+                    onStatusBarColorChange(MaterialTheme.colorScheme.background)
+                    StudentHomeScreen(
+                        onNavigationRequested = onNavigationRequested,
+                        onSemesterSelected = onSemesterSelected
+                    )
+                }
+                composable(Screen.BankerHome.route) {
                     onStatusBarColorChange(MaterialTheme.colorScheme.background)
                     StudentHomeScreen(
                         onNavigationRequested = onNavigationRequested,

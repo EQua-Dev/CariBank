@@ -4,7 +4,7 @@
  * Under Awesomeness Studios
  */
 
-package com.schoolprojects.corrreps
+package com.schoolprojects.caribank
 
 import android.app.Application
 import androidx.multidex.BuildConfig

@@ -33,7 +33,7 @@ import com.schoolprojects.caribank.R
 import com.schoolprojects.caribank.components.FlatButton
 import com.schoolprojects.caribank.ui.theme.Typography
 import com.schoolprojects.caribank.ui.Dimension
-import com.schoolprojects.corrreps.viewmodels.AuthViewModel
+import com.schoolprojects.caribank.viewmodels.AuthViewModel
 
 @Composable
 fun ForgotPasswordScreen(

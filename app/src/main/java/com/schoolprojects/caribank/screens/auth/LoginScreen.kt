@@ -32,7 +32,8 @@ import com.schoolprojects.caribank.R
 import com.schoolprojects.caribank.components.CustomSnackbar
 import com.schoolprojects.caribank.components.FlatButton
 import com.schoolprojects.caribank.navigation.Screen
-import com.schoolprojects.corrreps.viewmodels.AuthViewModel
+import com.schoolprojects.caribank.utils.Common
+import com.schoolprojects.caribank.viewmodels.AuthViewModel
 
 @Composable
 fun LoginScreen(
@@ -94,7 +95,12 @@ fun LoginScreen(
                         onLoading = {
                             showLoading.value = it
                         },
-                        onAuthenticated = {
+                        onAuthenticated = { userType ->
+                            val navRoute = if (userType == Common.UserTypes.STUDENT.userType){
+                                Screen.StudentHome.route
+                            }else{
+                                Screen.BankerHome.route
+                            }
                             onNavigationRequested(Screen.StudentHome.route, false)
                         },
                         onAuthenticationFailed = { error ->
@@ -141,11 +147,6 @@ fun LoginScreen(
 
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            TextButton(onClick = { /* Handle pay fees */ }) {
-                Text("Pay Fees")
-            }
 
         }
         if (showLoading.value) {

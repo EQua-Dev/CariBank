@@ -29,6 +29,10 @@ sealed class Screen(
         route = "studenthome",
         title = R.string.student_home,
     )
+    object BankerHome : Screen(
+        route = "bankerhome",
+        title = R.string.banker_home,
+    )
     object SemesterScreen : Screen(
         route = "semesterscreen/{level}/{semester}",
         title = R.string.semester_screen,
