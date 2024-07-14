@@ -230,6 +230,7 @@ fun ScaffoldSection(
                 composable(Screen.StudentHome.route) {
                     onStatusBarColorChange(MaterialTheme.colorScheme.background)
                     StudentHomeScreen(
+                        baseNavHostController = controller,
                         onNavigationRequested = onNavigationRequested,
                         onSemesterSelected = onSemesterSelected
                     )
@@ -237,6 +238,7 @@ fun ScaffoldSection(
                 composable(Screen.BankerHome.route) {
                     onStatusBarColorChange(MaterialTheme.colorScheme.background)
                     StudentHomeScreen(
+                        baseNavHostController = controller,
                         onNavigationRequested = onNavigationRequested,
                         onSemesterSelected = onSemesterSelected
                     )
