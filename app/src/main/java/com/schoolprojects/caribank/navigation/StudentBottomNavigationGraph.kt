@@ -8,13 +8,16 @@ package com.schoolprojects.caribank.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.schoolprojects.caribank.screens.student.paydues.StudentPayDues
 import com.schoolprojects.caribank.screens.student.payfees.StudentPayFees
 import com.schoolprojects.caribank.screens.student.savings.StudentSavings
 import com.schoolprojects.caribank.screens.student.takeloan.StudentTakeLoan
 import com.schoolprojects.caribank.screens.student.transactions.StudentTransactions
+import com.schoolprojects.caribank.screens.student.SemesterScreen
 
 @Composable
 fun StudentBottomNavigationGraph(navController: NavHostController) {
@@ -40,7 +43,7 @@ fun StudentBottomNavigationGraph(navController: NavHostController) {
 //            SupervisorProfile(navController = navController)
 //        }
 //    }
- NavHost(navController = navController, startDestination = BottomBarScreen.Transactions.route) {
+    NavHost(navController = navController, startDestination = BottomBarScreen.Transactions.route) {
         composable(
             route = BottomBarScreen.Transactions.route
         ) {
@@ -65,6 +68,23 @@ fun StudentBottomNavigationGraph(navController: NavHostController) {
             route = BottomBarScreen.Savings.route
         ) {
             StudentSavings(navController = navController)
+        }
+        composable(
+            Screen.FeesSemesterScreen.route,
+            arguments = listOf(
+                navArgument(name = "level") { type = NavType.StringType },
+                navArgument(name = "semester") { type = NavType.StringType }
+            ),
+        ) {
+            val level = it.arguments?.getString("level")
+            val semester = it.arguments?.getString("semester")
+            SemesterScreen(
+                level = level!!, semester = semester!!,
+                onBack = { navController.popBackStack() },
+                onPay = {}
+                //onBackRequested = onBackRequested,
+
+            )
         }
     }
 

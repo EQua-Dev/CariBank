@@ -33,7 +33,7 @@ import com.schoolprojects.caribank.utils.Common.mAuth
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.screens.auth.ForgotPasswordScreen
 import com.schoolprojects.caribank.screens.auth.SignUpScreen
-import com.schoolprojects.corrreps.screens.student.SemesterScreen
+import com.schoolprojects.caribank.screens.student.SemesterScreen
 import com.schoolprojects.caribank.screens.student.StudentHomeScreen
 import org.devstrike.persacg.presentation.screens.holder.HolderViewModel
 import com.schoolprojects.corrreps.utils.getDp
@@ -142,11 +142,11 @@ fun HolderScreen(
                 //controller.navigate(Screen.StudentLanding.route)
             },
             onSemesterSelected = { level, semester ->
-                controller.navigate(
+                /*controller.navigate(
                     Screen.SemesterScreen.route.replace("{level}", level)
                         .replace("{semester}", semester)
                 )
-
+*/
             },
             onViewStudent = { studentId ->
                 //controller.navigate(Screen.StudentDetail.route.replace("{studentId}", studentId))
@@ -252,8 +252,8 @@ fun ScaffoldSection(
 
                     )
                 }*/
-                composable(
-                    Screen.SemesterScreen.route,
+               /* composable(
+                    Screen.FeesSemesterScreen.route,
                     arguments = listOf(
                         navArgument(name = "level") { type = NavType.StringType },
                         navArgument(name = "semester") { type = NavType.StringType }
@@ -267,7 +267,7 @@ fun ScaffoldSection(
                         //onBackRequested = onBackRequested,
 
                     )
-                }
+                }*/
                 /*
                 composable(Screen.LecturerLandingScreen.route) {
                     onStatusBarColorChange(MaterialTheme.colorScheme.background)
