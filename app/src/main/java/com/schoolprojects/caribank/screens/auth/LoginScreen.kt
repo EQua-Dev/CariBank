@@ -95,13 +95,8 @@ fun LoginScreen(
                         onLoading = {
                             showLoading.value = it
                         },
-                        onAuthenticated = { userType ->
-                            val navRoute = if (userType == Common.UserTypes.STUDENT.userType){
-                                Screen.StudentHome.route
-                            }else{
-                                Screen.BankerHome.route
-                            }
-                            onNavigationRequested(Screen.StudentHome.route, false)
+                        onAuthenticated = { navRoute ->
+                            onNavigationRequested(navRoute, true)
                         },
                         onAuthenticationFailed = { error ->
                             errorMessage.value = error

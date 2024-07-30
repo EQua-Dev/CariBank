@@ -40,3 +40,16 @@ sealed class BottomBarScreen(
     object Savings : BottomBarScreen("Savings", Icons.Default.Savings, "student_savings",)
 
 }
+
+sealed class BankerBottomBarScreen(
+    val title: String,
+    val icon: ImageVector,
+    val route: String
+){
+    object Accounts : BankerBottomBarScreen("Accounts", Icons.Default.History, "banker_accounts",)
+    object Fees : BankerBottomBarScreen("Fees", Icons.Default.Payments, "banker_fees",)
+    object Loans : BankerBottomBarScreen("Loans", Icons.Default. VolunteerActivism, "banker_loans",)
+    object Dues : BankerBottomBarScreen("Dues", Icons.Default.Gavel, "banker_dues",)
+    object Savings : BankerBottomBarScreen("Savings", Icons.Default.Savings, "banker_savings",)
+
+}

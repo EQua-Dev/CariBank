@@ -6,4 +6,5 @@ data class Account(
     val accountBalance: Double = 0.0,
     val dateCreated: String = "",
     val accountOwner: String = "",
+    val accountStatus: String = "",
 )

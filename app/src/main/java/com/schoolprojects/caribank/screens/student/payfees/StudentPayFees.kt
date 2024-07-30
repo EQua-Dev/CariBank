@@ -1,7 +1,6 @@
 package com.schoolprojects.caribank.screens.student.payfees
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.ui.theme.Typography
-import com.schoolprojects.corrreps.viewmodels.StudentHomeViewModel
+import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
 
 @Composable
 fun StudentPayFees(

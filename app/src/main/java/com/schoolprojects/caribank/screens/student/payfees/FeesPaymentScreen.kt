@@ -1,7 +1,6 @@
-package com.schoolprojects.caribank.screens.student
+package com.schoolprojects.caribank.screens.student.payfees
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +26,7 @@ import com.schoolprojects.caribank.models.Fee
 import com.schoolprojects.caribank.ui.theme.Typography
 
 @Composable
-fun SemesterScreen(level: String, semester: String, onBack: () -> Unit, onPay: () -> Unit) {
+fun FeesPaymentScreen(level: String, semester: String, onBack: () -> Unit, onPay: () -> Unit) {
 
 
     val feeWithMultipleItems = Fee(

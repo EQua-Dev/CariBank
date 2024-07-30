@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.Student
+import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.utils.HelpMe
 import com.schoolprojects.caribank.utils.Common
 import com.schoolprojects.caribank.utils.Common.accountsCollectionRef
@@ -209,7 +210,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
 
     fun login(
         onLoading: (isLoading: Boolean) -> Unit,
-        onAuthenticated: (userType: String) -> Unit,
+        onAuthenticated: (navRoute: String) -> Unit,
         onAuthenticationFailed: (error: String) -> Unit
     ) {
         onLoading(true)
@@ -220,16 +221,15 @@ class AuthViewModel @Inject constructor() : ViewModel() {
         } else {
             if (this.email.value == "admin@gmail.com" && this.password.value == "!Admin1234") {
                 onLoading(false)
-                onAuthenticated(Common.UserTypes.BANKER.userType)
+                onAuthenticated(Screen.BankerHome.route)
             } else {
                 this.email.value.let { mAuth.signInWithEmailAndPassword(it, this.password.value) }
                     .addOnCompleteListener {
                         if (it.isSuccessful) {
                             onLoading(false)
-                            onAuthenticated(Common.UserTypes.STUDENT.userType)
+                            onAuthenticated(Screen.StudentHome.route)
                         } else {
                             onLoading(false)
-
                             onAuthenticationFailed(it.exception?.message ?: "Some error occurred")
                         }
                     }

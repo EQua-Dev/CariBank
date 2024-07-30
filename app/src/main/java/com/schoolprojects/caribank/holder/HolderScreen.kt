@@ -22,18 +22,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navArgument
 import com.schoolprojects.caribank.screens.auth.LoginScreen
 import com.schoolprojects.corrreps.providers.LocalNavHost
 import com.schoolprojects.caribank.utils.Common.mAuth
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.screens.auth.ForgotPasswordScreen
 import com.schoolprojects.caribank.screens.auth.SignUpScreen
-import com.schoolprojects.caribank.screens.student.SemesterScreen
+import com.schoolprojects.caribank.screens.banker.BankerHomeScreen
 import com.schoolprojects.caribank.screens.student.StudentHomeScreen
 import org.devstrike.persacg.presentation.screens.holder.HolderViewModel
 import com.schoolprojects.corrreps.utils.getDp
@@ -232,15 +230,13 @@ fun ScaffoldSection(
                     StudentHomeScreen(
                         baseNavHostController = controller,
                         onNavigationRequested = onNavigationRequested,
-                        onSemesterSelected = onSemesterSelected
                     )
                 }
                 composable(Screen.BankerHome.route) {
                     onStatusBarColorChange(MaterialTheme.colorScheme.background)
-                    StudentHomeScreen(
+                    BankerHomeScreen(
                         baseNavHostController = controller,
                         onNavigationRequested = onNavigationRequested,
-                        onSemesterSelected = onSemesterSelected
                     )
                 }
                 /*

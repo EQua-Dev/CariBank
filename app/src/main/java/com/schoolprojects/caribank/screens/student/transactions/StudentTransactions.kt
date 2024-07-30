@@ -1,11 +1,9 @@
 package com.schoolprojects.caribank.screens.student.transactions
 
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,8 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.schoolprojects.caribank.components.TabRowComponent
 import com.schoolprojects.caribank.models.AccountHistory
-import com.schoolprojects.caribank.ui.theme.Typography
-import com.schoolprojects.corrreps.viewmodels.StudentHomeViewModel
+import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -173,7 +168,7 @@ fun StudentTransactions(
                 .padding(vertical = 8.dp),
             shape = RoundedCornerShape(8.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF6200EE))
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFBBDEFB))
         ) {
             Column(
                 modifier = Modifier
@@ -190,7 +185,6 @@ fun StudentTransactions(
                     Text(
 //                        text = "Account Number: ${studentData.accountNumber}",
                         text = "Account Number: 2093505792",
-                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = {
@@ -206,7 +200,6 @@ fun StudentTransactions(
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Copy to clipboard",
-                            tint = Color.White
                         )
                     }
                 }
@@ -219,7 +212,6 @@ fun StudentTransactions(
                     Text(
 //                        text = if (isBalanceVisible) "Balance: ${studentData.balance}" else "Balance: ****",
                         text = if (isBalanceVisible) "Balance: 40000" else "Balance: ****",
-                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = {
@@ -228,7 +220,6 @@ fun StudentTransactions(
                         Icon(
                             imageVector = if (isBalanceVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle balance visibility",
-                            tint = Color.White
                         )
                     }
                 }
@@ -243,7 +234,7 @@ fun StudentTransactions(
                 { TransactionsList(transactions = transactionsOut) },      // Content screen for Tab 2
             ),
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Gray,
+            containerColor = Color.LightGray,
             contentColor = Color.White,
             indicatorColor = Color.DarkGray
         )
@@ -281,7 +272,8 @@ fun TransactionTile(transaction: AccountHistory) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFCBD0D3))
     ) {
         Column(
             modifier = Modifier

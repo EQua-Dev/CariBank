@@ -1,4 +1,4 @@
-package com.schoolprojects.corrreps.viewmodels
+package com.schoolprojects.caribank.viewmodels
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel

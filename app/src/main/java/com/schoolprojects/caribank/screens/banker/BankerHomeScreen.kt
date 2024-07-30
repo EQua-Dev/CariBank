@@ -1,4 +1,4 @@
-package com.schoolprojects.caribank.screens.student
+package com.schoolprojects.caribank.screens.banker
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -27,29 +27,33 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.schoolprojects.caribank.navigation.BankerBottomBar
+import com.schoolprojects.caribank.navigation.BankerBottomNavigationGraph
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.navigation.StudentBottomBar
 import com.schoolprojects.caribank.navigation.StudentBottomNavigationGraph
 import com.schoolprojects.caribank.ui.theme.Typography
 import com.schoolprojects.caribank.utils.Common
-import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
+import com.schoolprojects.caribank.viewmodels.BankerHomeViewModel
 
 @Composable
-fun StudentHomeScreen(
+fun BankerHomeScreen(
+    modifier: Modifier = Modifier,
+
     baseNavHostController: NavHostController,
     onNavigationRequested: (String, Boolean) -> Unit,
-    studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
+    bankerHomeViewModel: BankerHomeViewModel = hiltViewModel()
 ) {
 
     val navController = rememberNavController()
 
 
     val studentData by remember {
-        studentHomeViewModel.studentInfo
+        bankerHomeViewModel.studentInfo
     }
     val errorMessage = remember { mutableStateOf("") }
-    val showLoading by remember { mutableStateOf(studentHomeViewModel.showLoading) }
-    val openDialog by remember { mutableStateOf(studentHomeViewModel.openDialog) }
+    val showLoading by remember { mutableStateOf(bankerHomeViewModel.showLoading) }
+    val openDialog by remember { mutableStateOf(bankerHomeViewModel.openDialog) }
 
 
 
@@ -69,7 +73,7 @@ fun StudentHomeScreen(
 
     Scaffold(
         bottomBar = {
-            StudentBottomBar(navController = navController)
+            BankerBottomBar(navController = navController)
         }, topBar = {
             Box(
                 modifier = Modifier
@@ -81,7 +85,7 @@ fun StudentHomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Hello, ${studentData.studentFirstName}",
+                        text = "Hello, Admin",
                         modifier = Modifier
                             .weight(0.6f)
                             .padding(4.dp),
@@ -92,7 +96,7 @@ fun StudentHomeScreen(
                         imageVector = Icons.AutoMirrored.Filled.Logout,
                         contentDescription = null,
                         modifier = Modifier.clickable {
-                            studentHomeViewModel.updateDialogStatus()
+                            bankerHomeViewModel.updateDialogStatus()
                         })
                 }
             }
@@ -101,11 +105,10 @@ fun StudentHomeScreen(
     ) { innerPadding ->
         Box(
             modifier = Modifier.padding(
-                top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding()
+                innerPadding
             )
         ) {
-            StudentBottomNavigationGraph(navController = navController)
+            BankerBottomNavigationGraph(navController = navController)
         }
     }
 
@@ -128,7 +131,7 @@ fun StudentHomeScreen(
                     onClick = {
                         Common.mAuth.signOut()
                         baseNavHostController.navigate(Screen.Login.route)
-                        studentHomeViewModel.updateDialogStatus()
+                        bankerHomeViewModel.updateDialogStatus()
                     }
                 ) {
                     Text("Yes")
@@ -137,7 +140,7 @@ fun StudentHomeScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
-                        studentHomeViewModel.updateDialogStatus()
+                        bankerHomeViewModel.updateDialogStatus()
                     }
                 ) {
                     Text("No")
@@ -153,5 +156,6 @@ fun StudentHomeScreen(
 
         }
     }
+
 
 }

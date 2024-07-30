@@ -8,5 +8,6 @@ data class Loan(
     val studentId: String = "",
     val loanDescription: String = "",
     val dateCreated: String = "",
+    val dateApproved: String = "",
     val datePaidBack: String = "",
 )

@@ -12,37 +12,22 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.schoolprojects.caribank.screens.banker.accounts.BankerAccountsScreen
+import com.schoolprojects.caribank.screens.banker.dues.BankerDuesScreen
+import com.schoolprojects.caribank.screens.banker.fees.BankerFeesScreen
+import com.schoolprojects.caribank.screens.banker.loans.BankerLoansScreen
+import com.schoolprojects.caribank.screens.banker.savings.BankerSavingsScreen
+import com.schoolprojects.caribank.screens.student.paydues.DuesPaymentScreen
 import com.schoolprojects.caribank.screens.student.paydues.StudentPayDues
 import com.schoolprojects.caribank.screens.student.payfees.StudentPayFees
 import com.schoolprojects.caribank.screens.student.savings.StudentSavings
 import com.schoolprojects.caribank.screens.student.takeloan.StudentTakeLoan
 import com.schoolprojects.caribank.screens.student.transactions.StudentTransactions
-import com.schoolprojects.caribank.screens.student.SemesterScreen
+import com.schoolprojects.caribank.screens.student.payfees.FeesPaymentScreen
 
 @Composable
 fun StudentBottomNavigationGraph(navController: NavHostController) {
-//    NavHost(navController = navController, startDestination = Screen.SupervisorHouses.route) {
-//        composable(
-//            route = Screen.SupervisorHouses.route
-//        ) {
-//            SupervisorHouses(navController = navController)
-//        }
-//        composable(
-//            route = Screen.SupervisorStaff.route
-//        ) {
-//            SupervisorStaff(navController = navController)
-//        }
-//        composable(
-//            route = Screen.SupervisorShifts.route
-//        ) {
-//            SupervisorShifts(navController = navController)
-//        }
-//        composable(
-//            route = Screen.SupervisorProfile.route
-//        ) {
-//            SupervisorProfile(navController = navController)
-//        }
-//    }
+
     NavHost(navController = navController, startDestination = BottomBarScreen.Transactions.route) {
         composable(
             route = BottomBarScreen.Transactions.route
@@ -78,7 +63,91 @@ fun StudentBottomNavigationGraph(navController: NavHostController) {
         ) {
             val level = it.arguments?.getString("level")
             val semester = it.arguments?.getString("semester")
-            SemesterScreen(
+            FeesPaymentScreen(
+                level = level!!, semester = semester!!,
+                onBack = { navController.popBackStack() },
+                onPay = {}
+                //onBackRequested = onBackRequested,
+
+            )
+        }
+        composable(
+            Screen.DuesSemesterScreen.route,
+            arguments = listOf(
+                navArgument(name = "level") { type = NavType.StringType },
+                navArgument(name = "semester") { type = NavType.StringType }
+            ),
+        ) {
+            val level = it.arguments?.getString("level")
+            val semester = it.arguments?.getString("semester")
+            DuesPaymentScreen(
+                level = level!!, semester = semester!!,
+                onBack = { navController.popBackStack() },
+                onPay = {}
+                //onBackRequested = onBackRequested,
+
+            )
+        }
+    }
+
+}
+
+@Composable
+fun BankerBottomNavigationGraph(navController: NavHostController) {
+
+    NavHost(navController = navController, startDestination = BankerBottomBarScreen.Accounts.route) {
+        composable(
+            route = BankerBottomBarScreen.Accounts.route
+        ) {
+            BankerAccountsScreen(navController = navController)
+        }
+        composable(
+            route = BankerBottomBarScreen.Fees.route
+        ) {
+            BankerFeesScreen(navController = navController)
+        }
+        composable(
+            route = BankerBottomBarScreen.Loans.route
+        ) {
+            BankerLoansScreen(navController = navController)
+        }
+        composable(
+            route = BankerBottomBarScreen.Dues.route
+        ) {
+            BankerDuesScreen(navController = navController)
+        }
+        composable(
+            route = BankerBottomBarScreen.Savings.route
+        ) {
+            BankerSavingsScreen(navController = navController)
+        }
+        composable(
+            Screen.FeesSemesterScreen.route,
+            arguments = listOf(
+                navArgument(name = "level") { type = NavType.StringType },
+                navArgument(name = "semester") { type = NavType.StringType }
+            ),
+        ) {
+            val level = it.arguments?.getString("level")
+            val semester = it.arguments?.getString("semester")
+            FeesPaymentScreen(
+                level = level!!, semester = semester!!,
+                onBack = { navController.popBackStack() },
+                onPay = {}
+                //onBackRequested = onBackRequested,
+
+            )
+        }
+        composable(
+            Screen.DuesSemesterScreen.route,
+            arguments = listOf(
+                navArgument(name = "level") { type = NavType.StringType },
+                navArgument(name = "semester") { type = NavType.StringType }
+            ),
+        ) {
+            val level = it.arguments?.getString("level")
+            val semester = it.arguments?.getString("semester")
+            DuesPaymentScreen(
                 level = level!!, semester = semester!!,
                 onBack = { navController.popBackStack() },
                 onPay = {}
