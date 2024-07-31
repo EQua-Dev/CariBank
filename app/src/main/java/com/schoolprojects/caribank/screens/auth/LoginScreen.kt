@@ -1,6 +1,7 @@
 package com.schoolprojects.caribank.screens.auth
 
 import CustomTextField
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import com.schoolprojects.caribank.components.CustomSnackbar
 import com.schoolprojects.caribank.components.FlatButton
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.utils.Common
+import com.schoolprojects.caribank.utils.toast
 import com.schoolprojects.caribank.viewmodels.AuthViewModel
 
 @Composable
@@ -99,6 +101,7 @@ fun LoginScreen(
                             onNavigationRequested(navRoute, true)
                         },
                         onAuthenticationFailed = { error ->
+                            context.toast(error)
                             errorMessage.value = error
                         })
                 },

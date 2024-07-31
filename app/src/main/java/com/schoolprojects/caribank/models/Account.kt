@@ -7,4 +7,5 @@ data class Account(
     val dateCreated: String = "",
     val accountOwner: String = "",
     val accountStatus: String = "",
+    val loanCreditScore: String = "0.0"
 )

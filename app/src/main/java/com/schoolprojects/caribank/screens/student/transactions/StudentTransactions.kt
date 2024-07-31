@@ -26,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +44,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.schoolprojects.caribank.components.TabRowComponent
 import com.schoolprojects.caribank.models.AccountHistory
+import com.schoolprojects.caribank.screens.components.EmptyListView
+import com.schoolprojects.caribank.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.getDate
 import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -51,7 +56,11 @@ fun StudentTransactions(
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
-    val studentData by remember { studentHomeViewModel.studentInfo }
+    val studentData by remember { studentHomeViewModel.studentInfo }.collectAsState()
+    val accountData by remember { studentHomeViewModel.accountInfo }.collectAsState()
+    val transactionsIn by remember { studentHomeViewModel.transactionsIn }.collectAsState()
+    val transactionsOut by remember { studentHomeViewModel.transactionsOut }.collectAsState()
+
     var isBalanceVisible by remember { mutableStateOf(true) }
 
     val context = LocalContext.current
@@ -60,102 +69,10 @@ fun StudentTransactions(
     val tabTitles = listOf("Transactions In", "Transactions Out")
     val pagerState = rememberPagerState(pageCount = { 2 })
 
-
-    val transactionsIn = listOf(
-        AccountHistory(
-            historyId = "1",
-            date = "2024-07-01",
-            accountId = "ACC1001",
-            transactionType = "In",
-            transactionAmount = 500.0,
-            balance = 1500.0,
-            description = "Payment received"
-        ),
-        AccountHistory(
-            historyId = "2",
-            date = "2024-07-03",
-            accountId = "ACC1002",
-            transactionType = "In",
-            transactionAmount = 250.0,
-            balance = 1250.0,
-            description = "Deposit"
-        ),
-        AccountHistory(
-            historyId = "3",
-            date = "2024-07-05",
-            accountId = "ACC1003",
-            transactionType = "In",
-            transactionAmount = 800.0,
-            balance = 1800.0,
-            description = "Salary"
-        ),
-        AccountHistory(
-            historyId = "4",
-            date = "2024-07-07",
-            accountId = "ACC1004",
-            transactionType = "In",
-            transactionAmount = 300.0,
-            balance = 1300.0,
-            description = "Transfer from savings"
-        ),
-        AccountHistory(
-            historyId = "5",
-            date = "2024-07-10",
-            accountId = "ACC1005",
-            transactionType = "In",
-            transactionAmount = 100.0,
-            balance = 1100.0,
-            description = "Online payment received"
-        )
-    )
-
-    val transactionsOut = listOf(
-        AccountHistory(
-            historyId = "6",
-            date = "2024-07-02",
-            accountId = "ACC1006",
-            transactionType = "Out",
-            transactionAmount = -200.0,
-            balance = 800.0,
-            description = "Withdrawal"
-        ),
-        AccountHistory(
-            historyId = "7",
-            date = "2024-07-04",
-            accountId = "ACC1007",
-            transactionType = "Out",
-            transactionAmount = -150.0,
-            balance = 850.0,
-            description = "Online purchase"
-        ),
-        AccountHistory(
-            historyId = "8",
-            date = "2024-07-06",
-            accountId = "ACC1008",
-            transactionType = "Out",
-            transactionAmount = -400.0,
-            balance = 600.0,
-            description = "Utility bill payment"
-        ),
-        AccountHistory(
-            historyId = "9",
-            date = "2024-07-08",
-            accountId = "ACC1009",
-            transactionType = "Out",
-            transactionAmount = -100.0,
-            balance = 900.0,
-            description = "Transfer to savings"
-        ),
-        AccountHistory(
-            historyId = "10",
-            date = "2024-07-11",
-            accountId = "ACC1010",
-            transactionType = "Out",
-            transactionAmount = -50.0,
-            balance = 950.0,
-            description = "Subscription payment"
-        )
-    )
+    LaunchedEffect(Unit) {
+        // Assuming you have a way to get the studentId (e.g., from the current user session)
+        studentHomeViewModel.fetchStudentInfo(mAuth.uid!!)
+    }
 
     Column(
         modifier = Modifier
@@ -184,13 +101,13 @@ fun StudentTransactions(
                 ) {
                     Text(
 //                        text = "Account Number: ${studentData.accountNumber}",
-                        text = "Account Number: 2093505792",
+                        text = "Account Number: ${accountData?.accountNumber ?: "Unknown"}",
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = {
 //                        val clip = ClipData.newPlainText("Account Number", studentData.accountNumber)
                         val clip = ClipData.newPlainText("Account Number", "2093505792")
-                        clipboardManager.setText(AnnotatedString("2093505792"))
+                        clipboardManager.setText(AnnotatedString(accountData?.accountNumber ?: ""))
                         Toast.makeText(
                             context,
                             "Account number copied to clipboard",
@@ -211,7 +128,7 @@ fun StudentTransactions(
                 ) {
                     Text(
 //                        text = if (isBalanceVisible) "Balance: ${studentData.balance}" else "Balance: ****",
-                        text = if (isBalanceVisible) "Balance: 40000" else "Balance: ****",
+                        text = if (isBalanceVisible) "Balance: ₦${accountData?.accountBalance ?: "0.0"}" else "Balance: ****",
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = {
@@ -234,8 +151,7 @@ fun StudentTransactions(
                 { TransactionsList(transactions = transactionsOut) },      // Content screen for Tab 2
             ),
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.LightGray,
-            contentColor = Color.White,
+            contentColor = Color.Black,
             indicatorColor = Color.DarkGray
         )
 
@@ -255,15 +171,20 @@ fun StudentTransactions(
 
 @Composable
 fun TransactionsList(transactions: List<AccountHistory>) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        items(transactions) { transaction ->
-            TransactionTile(transaction = transaction)
+    if (transactions.isEmpty()){
+        EmptyListView(message = "No transactions records")
+    }else{
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
+            items(transactions) { transaction ->
+                TransactionTile(transaction = transaction)
+            }
         }
     }
+
 }
 
 @Composable
@@ -280,8 +201,11 @@ fun TransactionTile(transaction: AccountHistory) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(text = "Date: ${transaction.date}", fontWeight = FontWeight.Bold)
-            Text(text = "Amount: ${transaction.transactionAmount}")
+            Text(
+                text = "Date: ${getDate(transaction.date.toLong(), "EEE dd MMM, yyyy")}",
+                fontWeight = FontWeight.Bold
+            )
+            Text(text = "Amount: ₦${transaction.transactionAmount}")
             Text(text = "Narration: ${transaction.description}")
             Text(text = "Transaction Ref: ${transaction.historyId}", fontWeight = FontWeight.Bold)
         }

@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.Savings
 import com.schoolprojects.caribank.utils.calculateInterest
 import com.schoolprojects.caribank.utils.calculateInterestRate
@@ -40,6 +41,7 @@ import java.util.UUID
 @Composable
 fun CreateSavingsDialog(
     showDialog: MutableState<Boolean>,
+    accountDetails: Account?,
     onCreateSavings: (Savings) -> Unit
 ) {
     val savingsTitle = remember { mutableStateOf("") }
@@ -71,8 +73,11 @@ fun CreateSavingsDialog(
                     onClick = {
                         val newSavings = Savings(
                             savingsId = UUID.randomUUID().toString(),
-                            accountId = "A006",
-                            dateCreated = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                            accountId = accountDetails?.accountId!!,
+                            dateCreated = SimpleDateFormat(
+                                "yyyy-MM-dd",
+                                Locale.getDefault()
+                            ).format(
                                 Date()
                             ),
                             savingsAmount = savingsAmount.value.toDoubleOrNull() ?: 0.0,
@@ -82,7 +87,7 @@ fun CreateSavingsDialog(
                             ),
                             dueDate = withdrawDate.value,
                             savingsTitle = savingsTitle.value,
-                            savingsDescription = "Custom savings created by user",
+                            savingsDescription = "Custom savings created for ${savingsTitle.value}",
                             savingsStatus = "Active"
                         )
                         onCreateSavings(newSavings)
@@ -111,7 +116,11 @@ fun CreateSavingsDialog(
             text = {
                 Column {
                     Text(
-                        text = "Withdraw Amount: ₦${DecimalFormat("#,###.00").format(calculatedAmount.value)}",
+                        text = "Withdraw Amount: ₦${
+                            DecimalFormat("#,###.00").format(
+                                calculatedAmount.value
+                            )
+                        }",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -146,7 +155,10 @@ fun CreateSavingsDialog(
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true,
                         trailingIcon = {
-                            IconButton(onClick = { datePickerDialog.show() }) {
+                            IconButton(onClick = {
+                                datePickerDialog.datePicker.minDate = System.currentTimeMillis()
+                                datePickerDialog.show()
+                            }) {
                                 Icon(Icons.Default.DateRange, contentDescription = "Select Date")
                             }
                         }

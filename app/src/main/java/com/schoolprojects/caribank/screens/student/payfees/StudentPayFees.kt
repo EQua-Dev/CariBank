@@ -13,6 +13,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,7 @@ fun StudentPayFees(
     navController: NavHostController,
     studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
 ) {
-    val studentData by remember { studentHomeViewModel.studentInfo }
+    val studentData by remember { studentHomeViewModel.studentInfo }.collectAsState()
 
     Column(
         modifier = Modifier
@@ -41,7 +42,7 @@ fun StudentPayFees(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Department: ${studentData.studentDepartment}",
+            text = "Department: ${studentData?.studentDepartment}",
             style = Typography.headlineMedium
         )
 

@@ -1,6 +1,7 @@
 package com.schoolprojects.caribank.screens.student.savings
 
 import android.app.DatePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,11 +40,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.schoolprojects.caribank.models.Savings
 import com.schoolprojects.caribank.ui.theme.Typography
 import com.schoolprojects.caribank.utils.calculateInterest
 import com.schoolprojects.caribank.utils.calculateInterestRate
+import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -50,76 +56,31 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun StudentSavings(modifier: Modifier = Modifier, navController: NavHostController) {
+fun StudentSavings(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
+) {
 
     val showDialog = remember { mutableStateOf(false) }
+    val savingsList by remember {
+        studentHomeViewModel.savingsList
+    }.collectAsState()
+    val accountDetails by remember {
+        studentHomeViewModel.accountInfo
+    }.collectAsState()
 
-
-    val dummySavingsList = mutableListOf(
-        Savings(
-            savingsId = "1",
-            accountId = "A001",
-            dateCreated = "2024-01-15",
-            savingsAmount = 10000.0,
-            interestRate = 5.0,
-            dueDate = "2024-06-15",
-            savingsTitle = "Holiday Fund",
-            savingsDescription = "Savings for holiday travel",
-            savingsStatus = "Completed"
-        ),
-        Savings(
-            savingsId = "2",
-            accountId = "A002",
-            dateCreated = "2024-02-01",
-            savingsAmount = 15000.0,
-            interestRate = 4.5,
-            dueDate = "2024-07-01",
-            savingsTitle = "Emergency Fund",
-            savingsDescription = "Savings for emergencies",
-            savingsStatus = "Active"
-        ),
-        Savings(
-            savingsId = "3",
-            accountId = "A003",
-            dateCreated = "2024-03-10",
-            savingsAmount = 5000.0,
-            interestRate = 3.0,
-            dueDate = "2024-08-10",
-            savingsTitle = "Education Fund",
-            savingsDescription = "Savings for education",
-            savingsStatus = "Active"
-        ),
-        Savings(
-            savingsId = "4",
-            accountId = "A004",
-            dateCreated = "2024-04-05",
-            savingsAmount = 20000.0,
-            interestRate = 6.0,
-            dueDate = "2024-09-05",
-            savingsTitle = "New Car Fund",
-            savingsDescription = "Savings for buying a new car",
-            savingsStatus = "Completed"
-        ),
-        Savings(
-            savingsId = "5",
-            accountId = "A005",
-            dateCreated = "2024-05-20",
-            savingsAmount = 25000.0,
-            interestRate = 5.5,
-            dueDate = "2024-10-20",
-            savingsTitle = "House Renovation",
-            savingsDescription = "Savings for house renovation",
-            savingsStatus = "Active"
-        )
-    )
+    val context = LocalContext.current
 
     // Calculate total amount made from interests
     val totalAmountMade = remember {
-        mutableStateOf(dummySavingsList.sumOf { it.savingsAmount * it.interestRate / 100 })
+        mutableStateOf(savingsList.sumOf { it.savingsAmount * it.interestRate / 100 })
     }
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
 
         // Card with Title and Create Savings Button
         Card(
@@ -175,16 +136,19 @@ fun StudentSavings(modifier: Modifier = Modifier, navController: NavHostControll
 
         // List of Savings History
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(dummySavingsList) { savings ->
+            items(savingsList) { savings ->
                 SavingsItem(savings = savings)
             }
         }
     }
     // Call dialog component with the state and callback
-    CreateSavingsDialog(showDialog = showDialog, onCreateSavings = { newSavings ->
+    CreateSavingsDialog(showDialog = showDialog, accountDetails, onCreateSavings = { newSavings ->
         // Update savings list (dummy update, replace with actual logic)
-        dummySavingsList.add(newSavings)
-        totalAmountMade.value = dummySavingsList.sumOf { it.savingsAmount * it.interestRate / 100 }
+        studentHomeViewModel.addSavings(
+            newSavings,
+            onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() })
+//        dummySavingsList.add(newSavings)
+//        totalAmountMade.value = dummySavingsList.sumOf { it.savingsAmount * it.interestRate / 100 }
     })
 }
 

@@ -2,6 +2,7 @@ package com.schoolprojects.caribank.screens.student.takeloan
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -28,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +42,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.schoolprojects.caribank.models.Loan
 import com.schoolprojects.caribank.ui.theme.Typography
 import com.schoolprojects.caribank.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.HelpMe.isCreditScoreEligible
 import com.schoolprojects.caribank.utils.calculateDaysDifference
+import com.schoolprojects.caribank.utils.getDate
+import com.schoolprojects.caribank.viewmodels.StudentHomeViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -51,8 +59,15 @@ import java.util.Locale
 import java.util.UUID
 
 @Composable
-fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostController) {
+fun StudentTakeLoan(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
+) {
 
+    val context = LocalContext.current
+    val studentData by remember { studentHomeViewModel.studentInfo }.collectAsState()
+    val accountData by remember { studentHomeViewModel.accountInfo }.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var loanAmount by remember { mutableStateOf("") }
     var loanReason by remember { mutableStateOf("") }
@@ -60,8 +75,8 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var showCreditInfoDialog by remember { mutableStateOf(false) }
 
-    val userBalance = 20000.0
-    val creditScore = 0.72
+    val loanHistory by studentHomeViewModel.loanHistory.collectAsState(initial = emptyList())
+
 
     if (showCreditInfoDialog) {
         AlertDialog(
@@ -82,119 +97,6 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
         )
     }
 
-    // Dummy loan history data
-    val loanHistory = listOf(
-        Loan(
-            loanId = "L001",
-            loanAmount = 5000.0,
-            loanTerm = 12,
-            loanStatus = "Approved",
-            studentId = "S001",
-            loanDescription = "For buying textbooks",
-            dateCreated = "2024-01-15",
-            dateApproved = "2024-01-20",
-            datePaidBack = "2024-12-20"
-        ),
-        Loan(
-            loanId = "L002",
-            loanAmount = 3000.0,
-            loanTerm = 6,
-            loanStatus = "Approved",
-            studentId = "S002",
-            loanDescription = "For school project expenses",
-            dateCreated = "2024-02-10",
-            dateApproved = "2024-02-15",
-            datePaidBack = "2024-08-15"
-        ),
-        Loan(
-            loanId = "L003",
-            loanAmount = 7000.0,
-            loanTerm = 24,
-            loanStatus = "Pending",
-            studentId = "S001",
-            loanDescription = "For laptop purchase",
-            dateCreated = "2024-03-05",
-            dateApproved = "",
-            datePaidBack = ""
-        ),
-        Loan(
-            loanId = "L004",
-            loanAmount = 4500.0,
-            loanTerm = 9,
-            loanStatus = "Approved",
-            studentId = "S003",
-            loanDescription = "For travel expenses",
-            dateCreated = "2024-04-12",
-            dateApproved = "2024-04-20",
-            datePaidBack = "2025-01-20"
-        ),
-        Loan(
-            loanId = "L005",
-            loanAmount = 8000.0,
-            loanTerm = 36,
-            loanStatus = "Pending",
-            studentId = "S002",
-            loanDescription = "For tuition fees",
-            dateCreated = "2024-05-22",
-            dateApproved = "",
-            datePaidBack = ""
-        ),
-        Loan(
-            loanId = "L006",
-            loanAmount = 5500.0,
-            loanTerm = 18,
-            loanStatus = "Approved",
-            studentId = "S004",
-            loanDescription = "For research materials",
-            dateCreated = "2024-06-15",
-            dateApproved = "2024-06-25",
-            datePaidBack = "2025-12-25"
-        ),
-        Loan(
-            loanId = "L007",
-            loanAmount = 2500.0,
-            loanTerm = 6,
-            loanStatus = "Approved",
-            studentId = "S005",
-            loanDescription = "For living expenses",
-            dateCreated = "2024-07-10",
-            dateApproved = "2024-07-15",
-            datePaidBack = "2025-01-15"
-        ),
-        Loan(
-            loanId = "L008",
-            loanAmount = 9500.0,
-            loanTerm = 24,
-            loanStatus = "Approved",
-            studentId = "S006",
-            loanDescription = "For car maintenance",
-            dateCreated = "2024-08-01",
-            dateApproved = "2024-08-10",
-            datePaidBack = "2026-08-10"
-        ),
-        Loan(
-            loanId = "L009",
-            loanAmount = 12000.0,
-            loanTerm = 48,
-            loanStatus = "Pending",
-            studentId = "S007",
-            loanDescription = "For home renovation",
-            dateCreated = "2024-09-05",
-            dateApproved = "",
-            datePaidBack = ""
-        ),
-        Loan(
-            loanId = "L010",
-            loanAmount = 3000.0,
-            loanTerm = 12,
-            loanStatus = "Approved",
-            studentId = "S008",
-            loanDescription = "For medical expenses",
-            dateCreated = "2024-10-15",
-            dateApproved = "2024-10-20",
-            datePaidBack = "2025-10-20"
-        )
-    )
 
     Column(
         modifier = Modifier
@@ -216,7 +118,12 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Account Balance: ₦${String.format("%.2f", userBalance)}",
+                        text = "Account Balance: ₦${
+                            String.format(
+                                "%.2f",
+                                accountData?.accountBalance
+                            )
+                        }",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Button(onClick = { showDialog = true }) {
@@ -230,7 +137,7 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Credit Score: $creditScore",
+                        text = "Credit Score: ${accountData?.loanCreditScore}",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     IconButton(onClick = { showCreditInfoDialog = true }) {
@@ -252,11 +159,34 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
         )
 
         // Loan History List
-        LazyColumn {
-            items(loanHistory) { loan ->
-                LoanHistoryItem(loan = loan)
+        if (loanHistory.isEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No loans records",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        } else {
+            LazyColumn {
+                items(loanHistory) { loan ->
+                    LoanHistoryItem(loan = loan)
+                }
             }
         }
+
     }
     if (showDialog) {
         ApplyLoanDialog(
@@ -265,19 +195,36 @@ fun StudentTakeLoan(modifier: Modifier = Modifier, navController: NavHostControl
                 val today = Calendar.getInstance()
                 val daysDifference = calculateDaysDifference(today, selectedDate)
 
-                val loan = Loan(
-                    loanId = UUID.randomUUID().toString(),
-                    loanAmount = amount.toDouble(),
-                    loanTerm = daysDifference, // Assuming a 12-month term for now
-                    loanStatus = "Pending",
-                    studentId = mAuth.uid.toString(), // Replace with actual student ID
-                    loanDescription = reason,
-                    dateCreated = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
-                    dateApproved = "",
-                    datePaidBack = "",
-                )
-                //onApplyLoan(loan)
-                showDialog = false
+                if (isCreditScoreEligible(
+                        amount.toDouble(),
+                        accountData?.loanCreditScore?.toDouble() ?: 0.0
+                    )
+                ) {
+
+                    val loan = Loan(
+                        loanId = UUID.randomUUID().toString(),
+                        loanAmount = amount.toDouble(),
+                        loanTerm = daysDifference, // Assuming a 12-month term for now
+                        loanStatus = "pending",
+                        studentId = mAuth.uid.toString(), // Replace with actual student ID
+                        loanDescription = reason,
+                        dateCreated = System.currentTimeMillis().toString(),
+                        dateApproved = "",
+                        datePaidBack = "",
+                        payBackDate = selectedDate.timeInMillis.toString()
+                    )
+                    studentHomeViewModel.applyForLoan(loan)
+
+                    //onApplyLoan(loan)
+                    showDialog = false
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Insufficient credit score for this loan amount",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                }
             },
             loanAmount = loanAmount,
             onLoanAmountChange = { loanAmount = it },
@@ -306,12 +253,21 @@ fun LoanHistoryItem(loan: Loan) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Date Applied: ${loan.dateCreated}",
+                text = "Date Applied: ${getDate(loan.dateCreated.toLong(), "EEE, dd MMM yyyy")}",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(4.dp)
             )
             Text(
-                text = "Date Approved: ${loan.dateApproved ?: "Pending"}",
+                text = "Date Approved: ${
+                    if (loan.dateApproved.isNotEmpty()) {
+                        getDate(
+                            loan.dateApproved.toLong(),
+                            "EEE, dd MMM yyyy"
+                        )
+                    } else {
+                        "Pending"
+                    }
+                }",
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(4.dp)
             )
             Text(
@@ -420,6 +376,8 @@ fun showDatePicker(
         }, year, month, day
 
     )
+    datePickerDialog.datePicker.minDate = initialDate.timeInMillis
+
 
     datePickerDialog.show()
 }

@@ -10,4 +10,10 @@ object HelpMe {
         return randomNumber.toString()
 
     }
+
+    fun isCreditScoreEligible(loanAmount: Double, creditScore: Double): Boolean {
+        val maxLoanBasedOnCreditScore = creditScore * 100000 // Example calculation
+        return loanAmount <= maxLoanBasedOnCreditScore
+    }
+
 }

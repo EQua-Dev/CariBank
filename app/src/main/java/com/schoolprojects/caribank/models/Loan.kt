@@ -10,4 +10,5 @@ data class Loan(
     val dateCreated: String = "",
     val dateApproved: String = "",
     val datePaidBack: String = "",
+    val payBackDate: String = ""
 )

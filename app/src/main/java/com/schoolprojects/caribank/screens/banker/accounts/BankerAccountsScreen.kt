@@ -136,7 +136,6 @@ fun PendingAccountDialog(
                     Text(text = "Gender: ${it.studentGender}")
                     Text(text = "Department: ${it.studentDepartment}")
                     Text(text = "Current Level: ${it.studentCurrentLevel}")
-                    Text(text = "Credit Score: ${it.loanCreditScore}")
                 }
             } ?: Text(text = "Loading...")
         },
