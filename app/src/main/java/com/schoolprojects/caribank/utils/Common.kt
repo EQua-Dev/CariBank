@@ -46,6 +46,7 @@ object Common {
     private const val COURSES_REF = "Courses"
     private const val LOANS_REF = "Caribank Loans"
     private const val SAVINGS_REF = "Caribank Savings"
+    private const val PAID_FEES_REF = "Caribank Paid Fees"
     //const val HEALTH_RECORD_REF = "Patrealysis Health Record"
 
     val studentsCollectionRef = Firebase.firestore.collection(STUDENTS_REF)
@@ -53,6 +54,7 @@ object Common {
     val accountsHistoryCollectionRef = Firebase.firestore.collection(ACCOUNTS_HISTORY_REF)
     val loansCollectionRef = Firebase.firestore.collection(LOANS_REF)
     val savingsCollectionRef = Firebase.firestore.collection(SAVINGS_REF)
+    val paidFeesCollectionRef = Firebase.firestore.collection(PAID_FEES_REF)
     val coursesCollectionRef = Firebase.firestore.collection(COURSES_REF)
     //val healthRecordCollectionRef = Firebase.firestore.collection(HEALTH_RECORD_REF)
 

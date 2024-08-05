@@ -55,7 +55,7 @@ fun StudentBottomNavigationGraph(navController: NavHostController) {
             StudentSavings(navController = navController)
         }
         composable(
-            Screen.FeesSemesterScreen.route,
+            Screen.FeesSemester.route,
             arguments = listOf(
                 navArgument(name = "level") { type = NavType.StringType },
                 navArgument(name = "semester") { type = NavType.StringType }
@@ -66,7 +66,6 @@ fun StudentBottomNavigationGraph(navController: NavHostController) {
             FeesPaymentScreen(
                 level = level!!, semester = semester!!,
                 onBack = { navController.popBackStack() },
-                onPay = {}
                 //onBackRequested = onBackRequested,
 
             )
@@ -122,7 +121,7 @@ fun BankerBottomNavigationGraph(navController: NavHostController) {
             BankerSavingsScreen(navController = navController)
         }
         composable(
-            Screen.FeesSemesterScreen.route,
+            Screen.FeesSemester.route,
             arguments = listOf(
                 navArgument(name = "level") { type = NavType.StringType },
                 navArgument(name = "semester") { type = NavType.StringType }
@@ -133,7 +132,6 @@ fun BankerBottomNavigationGraph(navController: NavHostController) {
             FeesPaymentScreen(
                 level = level!!, semester = semester!!,
                 onBack = { navController.popBackStack() },
-                onPay = {}
                 //onBackRequested = onBackRequested,
 
             )

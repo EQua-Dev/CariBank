@@ -8,5 +8,6 @@ data class PaidFee(
     val datePaid: String = "",
     val status: String = "",
     val feeDescription: String = "",
-    val itemsPaid: List<String> = listOf()
+    val itemsPaid: List<String> = listOf(),
+    val paymentRef: String = ""
 )

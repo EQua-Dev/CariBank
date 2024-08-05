@@ -33,14 +33,14 @@ sealed class Screen(
         route = "bankerhome",
         title = R.string.banker_home,
     )
-    object FeesSemesterScreen : Screen(
-        route = "semesterscreen/{level}/{semester}",
+    object FeesSemester : Screen(
+        route = "semesterfeesscreen/{level}/{semester}",
         title = R.string.semester_screen,
         //icon = R.drawable.ic_home_empty,
     )
 
     object DuesSemesterScreen : Screen(
-        route = "semesterscreen/{level}/{semester}",
+        route = "semesterduesscreen/{level}/{semester}",
         title = R.string.semester_screen,
         //icon = R.drawable.ic_home_empty,
     )

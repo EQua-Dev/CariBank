@@ -16,4 +16,12 @@ object HelpMe {
         return loanAmount <= maxLoanBasedOnCreditScore
     }
 
+    // Helper function to generate a payment reference
+    fun generatePaymentRef(): String {
+        var seed: Long = System.currentTimeMillis()
+        seed++
+        val randomNumber = Random(seed).nextInt(10000, 99999.toInt())
+        return "REF$randomNumber"
+    }
+
 }

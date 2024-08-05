@@ -3,21 +3,28 @@ package com.schoolprojects.caribank.viewmodels
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.AccountHistory
+import com.schoolprojects.caribank.models.Fee
 import com.schoolprojects.caribank.models.Loan
+import com.schoolprojects.caribank.models.PaidFee
 import com.schoolprojects.caribank.models.Savings
 import com.schoolprojects.caribank.models.Student
+import com.schoolprojects.caribank.models.schoolFees
 import com.schoolprojects.caribank.utils.Common
 import com.schoolprojects.caribank.utils.Common.accountsCollectionRef
 import com.schoolprojects.caribank.utils.Common.loansCollectionRef
 import com.schoolprojects.caribank.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.Common.paidFeesCollectionRef
 import com.schoolprojects.caribank.utils.Common.savingsCollectionRef
 import com.schoolprojects.caribank.utils.Common.studentsCollectionRef
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -42,6 +49,79 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
 
     val showLoading = mutableStateOf<Boolean>(false)
     val openDialog = mutableStateOf<Boolean>(false)
+    val openSearchDialog = mutableStateOf<Boolean>(false)
+    private val _matchingFee = MutableStateFlow<PaidFee?>(null)
+    val matchingFee: StateFlow<PaidFee?> = _matchingFee
+
+    private val _schoolFee = MutableStateFlow<Fee?>(null)
+    val schoolFee: StateFlow<Fee?> = _schoolFee
+
+    fun searchFeeByPaymentRef(paymentRef: String, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            paidFeesCollectionRef
+                .whereEqualTo("paymentRef", paymentRef)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        if (document == null) {
+                            onError("No matching fee found for paymentRef: $paymentRef ")
+                        } else {
+
+                            val fee = document.toObject(PaidFee::class.java)
+                            _schoolFee.value = schoolFees.find { it.feeId == fee.feeId }
+                            _matchingFee.value = fee
+                        }
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    // Handle any errors
+                    _matchingFee.value = null
+                    onError("No matching fee found for paymentRef: $paymentRef ")
+                }
+        }
+    }
+
+    fun debitAccount(
+        accountId: String,
+        amount: Double,
+        description: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        Common.accountsCollectionRef.document(accountId)
+            .get()
+            .addOnSuccessListener { document ->
+                val currentBalance = document.getDouble("accountBalance") ?: 0.0
+                val newBalance = currentBalance - amount
+
+                accountsCollectionRef.document(accountId)
+                    .update("accountBalance", newBalance)
+                    .addOnSuccessListener {
+                        // Optionally refresh data or handle success
+                        fetchAccountInfo(mAuth.uid!!)
+                        addTransactionToHistory(
+                            accountId,
+                            0 - amount,
+                            newBalance,
+                            Common.TransactionType.DEBIT.transactionType,
+                            description,
+                            callback = { status, message ->
+                                callback(status, message)
+                            }
+                        )
+                    }
+                    .addOnFailureListener { e ->
+                        // Handle error
+                    }
+            }
+            .addOnFailureListener { e ->
+                // Handle error
+            }
+    }
+
+    fun clearMatchingFee() {
+        _matchingFee.value = null
+    }
+
 
     val TAG = "StudentHomeViewModel"
 
@@ -61,6 +141,10 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
 
     fun updateDialogStatus() {
         this.openDialog.value = !this.openDialog.value
+    }
+
+    fun updateShowSearchDialogStatus() {
+        this.openSearchDialog.value = !this.openSearchDialog.value
     }
 
     // Assume you have a function to get the current student's ID
@@ -122,7 +206,8 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
         amount: Double,
         newBalance: Double,
         transactionType: String,
-        description: String
+        description: String,
+        callback: (Boolean, String) -> Unit
     ) {
         val transaction = AccountHistory(
             historyId = UUID.randomUUID().toString(),
@@ -138,9 +223,11 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
             .set(transaction)
             .addOnSuccessListener {
                 // Handle success if needed
+                callback(true, "Transaction added successfully.")
             }
             .addOnFailureListener { e ->
                 // Handle error
+                callback(false, "Failed to add transaction. Try again.")
             }
     }
 
@@ -162,10 +249,20 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
                     0 - newSavings.savingsAmount,
                     accountInfo.value?.accountBalance!! - newSavings.savingsAmount,
                     Common.TransactionType.DEBIT.transactionType,
-                    newSavings.savingsDescription
+                    newSavings.savingsDescription, callback = { status, message ->
+                        if (status) {
+                            fetchSavings() // Refresh savings list
+                            updateAccountBalance(
+                                newSavings.accountId,
+                                newSavings.savingsAmount,
+                                onError
+                            )
+                        } else {
+                            onError(message)
+                        }
+                    }
                 )
-                fetchSavings() // Refresh savings list
-                updateAccountBalance(newSavings.accountId, newSavings.savingsAmount, onError)
+
             }
             .addOnFailureListener { exception ->
                 Log.e("SavingsViewModel", "Error adding savings", exception)
@@ -246,6 +343,123 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
             .addOnFailureListener { exception ->
                 Log.e("StudentLoanViewModel", "Error adding loan application: ", exception)
             }
+    }
+
+    fun getPaidFeesForStudent(
+        studentId: String,
+        feeId: String,
+        onResult: (List<PaidFee>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        paidFeesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .whereEqualTo("feeId", feeId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val paidFees = querySnapshot.documents.mapNotNull { document ->
+                    document.toObject(PaidFee::class.java)
+                }
+                onResult(paidFees)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception.localizedMessage ?: "Some error occurred")
+                Log.e("Firestore", "Error fetching paid fees", exception)
+            }
+    }
+
+    // Firestore function to check for existing PaidFee
+    private fun checkExistingPaidFee(
+        studentId: String,
+        feeId: String,
+        onResult: (PaidFee?) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        paidFeesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .whereEqualTo("feeId", feeId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    onResult(null) // No existing document
+                } else {
+                    val paidFee = querySnapshot.documents.first().toObject(PaidFee::class.java)
+                    onResult(paidFee) // Existing document
+                }
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+
+
+    // Firestore function to update or save PaidFee
+    fun saveOrUpdatePaidFee(
+        studentId: String,
+        feeId: String,
+        selectedItems: List<String>,
+        amountPaid: Double,
+        paymentRef: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        checkExistingPaidFee(studentId, feeId, { existingPaidFee ->
+
+            // If an existing paid fee is found, update it
+            if (existingPaidFee != null) {
+                val updatedItems = existingPaidFee.itemsPaid + selectedItems
+                val updatedAmount = existingPaidFee.amountPaid + amountPaid
+
+                val updatedPaidFee = existingPaidFee.copy(
+                    itemsPaid = updatedItems,
+                    amountPaid = updatedAmount,
+                    datePaid = System.currentTimeMillis().toString()
+                )
+
+                paidFeesCollectionRef
+                    .document(existingPaidFee.paidFeeId)
+                    .set(updatedPaidFee)
+                    .addOnSuccessListener {
+                        debitAccount(
+                            _accountInfo.value!!.accountId,
+                            amountPaid,
+                            "Fees payment for ${selectedItems.joinToString(",")}",
+                            callback = { status, message ->
+                                callback(status, message)
+                            }
+                        )
+                        Timber.d("Paid fee updated successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Timber.e(exception, "Error updating paid fee")
+                    }
+            } else {
+                // Create a new paid fee if none exists
+                val paidFeeId = paidFeesCollectionRef.document().id
+                val newPaidFee = PaidFee(
+                    paidFeeId = paidFeeId,
+                    feeId = feeId,
+                    studentId = studentId,
+                    amountPaid = amountPaid,
+                    datePaid = System.currentTimeMillis().toString(),
+                    status = "Paid",
+                    feeDescription = "Payment for selected fee items",
+                    itemsPaid = selectedItems,
+                    paymentRef = paymentRef
+                )
+
+                paidFeesCollectionRef
+                    .document(paidFeeId)
+                    .set(newPaidFee)
+                    .addOnSuccessListener {
+                        Timber.d("New paid fee saved successfully")
+                        callback(true, "New paid fee saved successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Timber.e(exception, "Error saving new paid fee")
+                    }
+            }
+        }, { exception ->
+            Timber.e(exception, "Error checking existing paid fee")
+        })
     }
 
 
