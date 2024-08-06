@@ -9,5 +9,6 @@ data class PaidFee(
     val status: String = "",
     val feeDescription: String = "",
     val itemsPaid: List<String> = listOf(),
-    val paymentRef: String = ""
+    val paymentRef: String = "",
+    val isVerified: Boolean = false
 )

@@ -6,16 +6,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.AccountHistory
+import com.schoolprojects.caribank.models.Due
 import com.schoolprojects.caribank.models.Fee
 import com.schoolprojects.caribank.models.Loan
+import com.schoolprojects.caribank.models.PaidDues
 import com.schoolprojects.caribank.models.PaidFee
 import com.schoolprojects.caribank.models.Savings
 import com.schoolprojects.caribank.models.Student
+import com.schoolprojects.caribank.models.schoolDues
 import com.schoolprojects.caribank.models.schoolFees
 import com.schoolprojects.caribank.utils.Common
 import com.schoolprojects.caribank.utils.Common.accountsCollectionRef
 import com.schoolprojects.caribank.utils.Common.loansCollectionRef
 import com.schoolprojects.caribank.utils.Common.mAuth
+import com.schoolprojects.caribank.utils.Common.paidDuesCollectionRef
 import com.schoolprojects.caribank.utils.Common.paidFeesCollectionRef
 import com.schoolprojects.caribank.utils.Common.savingsCollectionRef
 import com.schoolprojects.caribank.utils.Common.studentsCollectionRef
@@ -50,11 +54,18 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
     val showLoading = mutableStateOf<Boolean>(false)
     val openDialog = mutableStateOf<Boolean>(false)
     val openSearchDialog = mutableStateOf<Boolean>(false)
+
     private val _matchingFee = MutableStateFlow<PaidFee?>(null)
     val matchingFee: StateFlow<PaidFee?> = _matchingFee
 
     private val _schoolFee = MutableStateFlow<Fee?>(null)
     val schoolFee: StateFlow<Fee?> = _schoolFee
+
+    private val _matchingDue = MutableStateFlow<PaidDues?>(null)
+    val matchingDue: StateFlow<PaidDues?> = _matchingDue
+
+    private val _schoolDue = MutableStateFlow<Due?>(null)
+    val schoolDue: StateFlow<Due?> = _schoolDue
 
     fun searchFeeByPaymentRef(paymentRef: String, onError: (String) -> Unit) {
         viewModelScope.launch {
@@ -76,6 +87,31 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
                 .addOnFailureListener { exception ->
                     // Handle any errors
                     _matchingFee.value = null
+                    onError("No matching fee found for paymentRef: $paymentRef ")
+                }
+        }
+    }
+
+    fun searchDueByPaymentRef(paymentRef: String, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            paidDuesCollectionRef
+                .whereEqualTo("paymentRef", paymentRef)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        if (document == null) {
+                            onError("No matching fee found for paymentRef: $paymentRef ")
+                        } else {
+
+                            val due = document.toObject(PaidDues::class.java)
+                            _schoolDue.value = schoolDues.find { it.dueId == due.duesId }
+                            _matchingDue.value = due
+                        }
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    // Handle any errors
+                    _matchingDue.value = null
                     onError("No matching fee found for paymentRef: $paymentRef ")
                 }
         }
@@ -120,6 +156,10 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
 
     fun clearMatchingFee() {
         _matchingFee.value = null
+    }
+
+  fun clearMatchingDue() {
+        _matchingDue.value = null
     }
 
 
@@ -367,6 +407,28 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
             }
     }
 
+    fun getPaidDuesForStudent(
+        studentId: String,
+        dueId: String,
+        onResult: (List<PaidDues>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        paidDuesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .whereEqualTo("duesId", dueId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val paidDues = querySnapshot.documents.mapNotNull { document ->
+                    document.toObject(PaidDues::class.java)
+                }
+                onResult(paidDues)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception.localizedMessage ?: "Some error occurred")
+                Log.e("Firestore", "Error fetching paid dues", exception)
+            }
+    }
+
     // Firestore function to check for existing PaidFee
     private fun checkExistingPaidFee(
         studentId: String,
@@ -384,6 +446,29 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
                 } else {
                     val paidFee = querySnapshot.documents.first().toObject(PaidFee::class.java)
                     onResult(paidFee) // Existing document
+                }
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+    // Firestore function to check for existing PaidFee
+    private fun checkExistingPaidDue(
+        studentId: String,
+        dueId: String,
+        onResult: (PaidDues?) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        paidDuesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .whereEqualTo("duesId", dueId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    onResult(null) // No existing document
+                } else {
+                    val paidDue = querySnapshot.documents.first().toObject(PaidDues::class.java)
+                    onResult(paidDue) // Existing document
                 }
             }
             .addOnFailureListener { exception ->
@@ -459,6 +544,76 @@ class StudentHomeViewModel @Inject constructor() : ViewModel() {
             }
         }, { exception ->
             Timber.e(exception, "Error checking existing paid fee")
+        })
+    }
+
+    // Firestore function to update or save PaidFee
+    fun saveOrUpdatePaidDue(
+        studentId: String,
+        dueId: String,
+        selectedItems: List<String>,
+        amountPaid: Double,
+        paymentRef: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        checkExistingPaidDue(studentId, dueId, { existingPaidDue ->
+
+            // If an existing paid fee is found, update it
+            if (existingPaidDue != null) {
+                val updatedItems = existingPaidDue.itemsPaid + selectedItems
+                val updatedAmount = existingPaidDue.amountPaid + amountPaid
+
+                val updatedPaidFee = existingPaidDue.copy(
+                    itemsPaid = updatedItems,
+                    amountPaid = updatedAmount,
+                    datePaid = System.currentTimeMillis().toString()
+                )
+
+                paidDuesCollectionRef
+                    .document(existingPaidDue.paidDuesId)
+                    .set(updatedPaidFee)
+                    .addOnSuccessListener {
+                        debitAccount(
+                            _accountInfo.value!!.accountId,
+                            amountPaid,
+                            "Dues payment for ${selectedItems.joinToString(",")}",
+                            callback = { status, message ->
+                                callback(status, message)
+                            }
+                        )
+                        Timber.d("Paid due updated successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Timber.e(exception, "Error updating paid fee")
+                    }
+            } else {
+                // Create a new paid fee if none exists
+                val paidDueId = paidDuesCollectionRef.document().id
+                val newPaidDue = PaidDues(
+                    paidDuesId = paidDueId,
+                    duesId = dueId,
+                    studentId = studentId,
+                    amountPaid = amountPaid,
+                    datePaid = System.currentTimeMillis().toString(),
+                    status = "Paid",
+                    dueDescription = "Payment for selected dues items",
+                    itemsPaid = selectedItems,
+                    paymentRef = paymentRef
+                )
+
+                paidDuesCollectionRef
+                    .document(paidDueId)
+                    .set(newPaidDue)
+                    .addOnSuccessListener {
+                        Timber.d("New paid due saved successfully")
+                        callback(true, "New paid due saved successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Timber.e(exception, "Error saving new paid due")
+                    }
+            }
+        }, { exception ->
+            Timber.e(exception, "Error checking existing paid due")
         })
     }
 

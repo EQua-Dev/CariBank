@@ -1,17 +1,82 @@
 package com.schoolprojects.caribank.screens.banker.fees
 
+import SearchBar
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.schoolprojects.caribank.components.SemesterToggle
+import com.schoolprojects.caribank.models.FeeWithStudent
+import com.schoolprojects.caribank.models.schoolFees
+import com.schoolprojects.caribank.screens.banker.FeesList
 import com.schoolprojects.caribank.ui.theme.Typography
+import com.schoolprojects.caribank.viewmodels.BankerHomeViewModel
 
 @Composable
-fun BankerFeesScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun BankerFeesScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    bankerHomeViewModel: BankerHomeViewModel = hiltViewModel()
+) {
 
-    Box(contentAlignment = Alignment.Center) {
-        Text(text = "Banker Fees Screen", style = Typography.titleMedium)
+    var searchQuery by remember { mutableStateOf("") }
+    var currentSemester by remember { mutableStateOf("1st Semester") }
+    val paidFees by bankerHomeViewModel.paidFees.collectAsState(initial = emptyList())
+    val searchResults by bankerHomeViewModel.searchResults.collectAsState(initial = emptyList())
+    val studentData by remember {
+        bankerHomeViewModel.studentInfo
+    }.collectAsState()
+
+    // Filter fees based on semester
+    val semesterFilteredFees = paidFees.mapNotNull { paidFee ->
+        // Find the corresponding Fee object in schoolFees based on feeId
+        val fee = schoolFees.find { it.feeId == paidFee.paidFee.feeId && it.feeSemester == currentSemester }
+        // Only return a FeeWithStudent object if the fee matches the current semester
+        fee?.let {
+            FeeWithStudent(paidFee.paidFee, paidFee.student)
+        }
     }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        // Top bar with search button
+        SearchBar(
+            searchQuery = searchQuery,
+            onSearchQueryChanged = { searchQuery = it },
+            onSearch = { query ->
+                bankerHomeViewModel.searchFees(query)
+            }
+        )
+
+        // Semester toggle
+        SemesterToggle(
+            currentSemester = currentSemester,
+            onSemesterChange = { semester ->
+                currentSemester = semester
+            }
+        )
+
+        // Display either search results or all paid fees
+        val feesToDisplay = if (searchQuery.isNotEmpty()) searchResults else semesterFilteredFees
+
+
+        // Fees list
+        FeesList(
+            fees = feesToDisplay,
+            onVerifyFee = { feeWithStudent ->
+                bankerHomeViewModel.verifyFee(feeWithStudent)
+            }
+        )
+    }
+
 }
+

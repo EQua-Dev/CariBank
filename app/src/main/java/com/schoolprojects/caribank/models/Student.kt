@@ -11,3 +11,13 @@ data class Student(
     val studentCurrentLevel: String = "",
 
 )
+
+data class FeeWithStudent(
+    val paidFee: PaidFee,
+    val student: Student
+)
+
+data class DueWithStudent(
+    val paidDue: PaidDues,
+    val student: Student
+)

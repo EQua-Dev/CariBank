@@ -5,17 +5,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.schoolprojects.caribank.models.Account
 import com.schoolprojects.caribank.models.AccountHistory
+import com.schoolprojects.caribank.models.DueWithStudent
+import com.schoolprojects.caribank.models.FeeWithStudent
 import com.schoolprojects.caribank.models.Loan
+import com.schoolprojects.caribank.models.PaidDues
+import com.schoolprojects.caribank.models.PaidFee
 import com.schoolprojects.caribank.models.Savings
 import com.schoolprojects.caribank.models.Student
 import com.schoolprojects.caribank.utils.Common
 import com.schoolprojects.caribank.utils.Common.accountsCollectionRef
 import com.schoolprojects.caribank.utils.Common.loansCollectionRef
+import com.schoolprojects.caribank.utils.Common.paidDuesCollectionRef
+import com.schoolprojects.caribank.utils.Common.paidFeesCollectionRef
+import com.schoolprojects.caribank.utils.Common.savingsCollectionRef
 import com.schoolprojects.caribank.utils.Common.studentsCollectionRef
+import com.schoolprojects.caribank.utils.calculateInterestRate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 
@@ -23,7 +34,6 @@ import javax.inject.Inject
 @HiltViewModel
 class BankerHomeViewModel @Inject constructor() : ViewModel() {
 
-    val studentInfo = mutableStateOf<Student>(Student())
     val showLoading = mutableStateOf<Boolean>(false)
     val openDialog = mutableStateOf<Boolean>(false)
 
@@ -32,6 +42,19 @@ class BankerHomeViewModel @Inject constructor() : ViewModel() {
     }
 
     val TAG = "BankerHomeViewModel"
+
+    private val _paidFees = MutableStateFlow<List<FeeWithStudent>>(emptyList())
+    val paidFees: StateFlow<List<FeeWithStudent>> get() = _paidFees
+
+    private val _paidDues = MutableStateFlow<List<DueWithStudent>>(emptyList())
+    val paidDues: StateFlow<List<DueWithStudent>> get() = _paidDues
+
+    private val _searchResults = MutableStateFlow<List<FeeWithStudent>>(emptyList())
+    val searchResults: StateFlow<List<FeeWithStudent>> get() = _searchResults
+
+    private val _searchDueResults = MutableStateFlow<List<DueWithStudent>>(emptyList())
+    val searchDueResults: StateFlow<List<DueWithStudent>> get() = _searchDueResults
+
 
     // Loans State
     private val _approvedLoans = MutableStateFlow<List<Loan>>(emptyList())
@@ -55,11 +78,22 @@ class BankerHomeViewModel @Inject constructor() : ViewModel() {
     private val _accountRequests = MutableStateFlow<List<Account>>(emptyList())
     val accountRequests: StateFlow<List<Account>> = _accountRequests.asStateFlow()
 
+    private val _studentInfo = MutableStateFlow<Student?>(null)
+    val studentInfo: StateFlow<Student?> = _studentInfo
+
+    private val _savingsList = MutableStateFlow<List<Savings>>(emptyList())
+    val savingsList: StateFlow<List<Savings>> = _savingsList
+
+
     init {
         fetchTotalMoney()
         fetchActiveAccounts()
         fetchAccountRequests()
         fetchLoans()
+        fetchPaidFees()
+        fetchPaidDues()
+        fetchSavings()
+
     }
 
     private fun fetchTotalMoney() {
@@ -72,6 +106,21 @@ class BankerHomeViewModel @Inject constructor() : ViewModel() {
             }
     }
 
+    fun fetchStudentInfo(studentId: String) {
+        studentsCollectionRef
+            .document(studentId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    val student = document.toObject(Student::class.java)
+
+                    _studentInfo.value = student
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle the error
+            }
+    }
 
     private fun fetchTotalLoanMoney() {
         Common.loansCollectionRef
@@ -262,6 +311,315 @@ class BankerHomeViewModel @Inject constructor() : ViewModel() {
                     Log.e("BankerHomeViewModel", "Error querying loan: ", e)
                 }
         }
+    }
+
+    private fun fetchPaidFees() {
+        paidFeesCollectionRef
+            .get()
+            .addOnSuccessListener { feeDocs ->
+                val feeList = mutableListOf<FeeWithStudent>()
+                feeDocs.forEach { feeDoc ->
+                    val paidFee = feeDoc.toObject(PaidFee::class.java)
+                    // Fetch associated student
+                    studentsCollectionRef
+                        .whereEqualTo("studentId", paidFee.studentId)
+                        .get()
+                        .addOnSuccessListener { studentDocs ->
+                            val student =
+                                studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                    .firstOrNull()
+                            student?.let {
+                                feeList.add(FeeWithStudent(paidFee = paidFee, student = it))
+                                _paidFees.value = feeList
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+    fun searchFees(query: String) {
+        when {
+            query.startsWith("REF") -> {
+                // Search by payment reference
+                paidFeesCollectionRef
+                    .whereEqualTo("paymentRef", query)
+                    .get()
+                    .addOnSuccessListener { feeDocs ->
+                        val feeList = mutableListOf<FeeWithStudent>()
+                        feeDocs.forEach { feeDoc ->
+                            val paidFee = feeDoc.toObject(PaidFee::class.java)
+                            // Fetch associated student
+                            studentsCollectionRef
+                                .whereEqualTo("studentId", paidFee.studentId)
+                                .get()
+                                .addOnSuccessListener { studentDocs ->
+                                    val student =
+                                        studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                            .firstOrNull()
+                                    student?.let {
+                                        feeList.add(FeeWithStudent(paidFee = paidFee, student = it))
+                                        _searchResults.value = feeList
+                                    }
+                                }
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+
+            isRegNumber(query) -> {
+                // Search by registration number
+                studentsCollectionRef
+                    .whereEqualTo("studentRegNo", query)
+                    .get()
+                    .addOnSuccessListener { studentDocs ->
+                        val student = studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                            .firstOrNull()
+                        student?.let {
+                            fetchFeesByStudentId(it.studentId)
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+
+            else -> {
+                // Search by student name
+                studentsCollectionRef
+                    .whereEqualTo("studentFirstName", query)
+                    .get()
+                    .addOnSuccessListener { studentDocs ->
+                        val student = studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                            .firstOrNull()
+                        student?.let {
+                            fetchFeesByStudentId(it.studentId)
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+        }
+    }
+
+    private fun fetchFeesByStudentId(studentId: String) {
+        paidFeesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .get()
+            .addOnSuccessListener { feeDocs ->
+                val feeList = mutableListOf<FeeWithStudent>()
+                feeDocs.forEach { feeDoc ->
+                    val paidFee = feeDoc.toObject(PaidFee::class.java)
+                    studentsCollectionRef
+                        .whereEqualTo("studentId", studentId)
+                        .get()
+                        .addOnSuccessListener { studentDocs ->
+                            val student =
+                                studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                    .firstOrNull()
+                            student?.let {
+                                feeList.add(FeeWithStudent(paidFee = paidFee, student = it))
+                                _searchResults.value = feeList
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+    fun verifyFee(feeWithStudent: FeeWithStudent) {
+        val updatedFee = feeWithStudent.paidFee.copy(isVerified = true)
+        paidFeesCollectionRef
+            .document(updatedFee.paidFeeId)
+            .set(updatedFee)
+            .addOnSuccessListener {
+                fetchPaidFees()
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+
+    private fun fetchPaidDues() {
+        paidDuesCollectionRef
+            .get()
+            .addOnSuccessListener { dueDocs ->
+                val dueList = mutableListOf<DueWithStudent>()
+                dueDocs.forEach { dueDoc ->
+                    val paidDue = dueDoc.toObject(PaidDues::class.java)
+                    // Fetch associated student
+                    studentsCollectionRef
+                        .whereEqualTo("studentId", paidDue.studentId)
+                        .get()
+                        .addOnSuccessListener { studentDocs ->
+                            val student =
+                                studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                    .firstOrNull()
+                            student?.let {
+                                dueList.add(DueWithStudent(paidDue = paidDue, student = it))
+                                _paidDues.value = dueList
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+    fun searchDues(query: String) {
+        when {
+            query.startsWith("REF") -> {
+                // Search by payment reference
+                paidDuesCollectionRef
+                    .whereEqualTo("paymentRef", query)
+                    .get()
+                    .addOnSuccessListener { dueDocs ->
+                        val dueList = mutableListOf<DueWithStudent>()
+                        dueDocs.forEach { feeDoc ->
+                            val paidDue = feeDoc.toObject(PaidDues::class.java)
+                            // Fetch associated student
+                            studentsCollectionRef
+                                .whereEqualTo("studentId", paidDue.studentId)
+                                .get()
+                                .addOnSuccessListener { studentDocs ->
+                                    val student =
+                                        studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                            .firstOrNull()
+                                    student?.let {
+                                        dueList.add(DueWithStudent(paidDue = paidDue, student = it))
+                                        _searchDueResults.value = dueList
+                                    }
+                                }
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+
+            isRegNumber(query) -> {
+                // Search by registration number
+                studentsCollectionRef
+                    .whereEqualTo("studentRegNo", query)
+                    .get()
+                    .addOnSuccessListener { studentDocs ->
+                        val student = studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                            .firstOrNull()
+                        student?.let {
+                            fetchDuesByStudentId(it.studentId)
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+
+            else -> {
+                // Search by student name
+                studentsCollectionRef
+                    .whereEqualTo("studentFirstName", query)
+                    .get()
+                    .addOnSuccessListener { studentDocs ->
+                        val student = studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                            .firstOrNull()
+                        student?.let {
+                            fetchDuesByStudentId(it.studentId)
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle errors
+                    }
+            }
+        }
+    }
+
+    private fun fetchDuesByStudentId(studentId: String) {
+        paidDuesCollectionRef
+            .whereEqualTo("studentId", studentId)
+            .get()
+            .addOnSuccessListener { dueDocs ->
+                val dueList = mutableListOf<DueWithStudent>()
+                dueDocs.forEach { feeDoc ->
+                    val paidDue = feeDoc.toObject(PaidDues::class.java)
+                    studentsCollectionRef
+                        .whereEqualTo("studentId", studentId)
+                        .get()
+                        .addOnSuccessListener { studentDocs ->
+                            val student =
+                                studentDocs.mapNotNull { it.toObject(Student::class.java) }
+                                    .firstOrNull()
+                            student?.let {
+                                dueList.add(DueWithStudent(paidDue = paidDue, student = it))
+                                _searchDueResults.value = dueList
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+    fun verifyDue(dueWithStudent: DueWithStudent) {
+        val updatedDue = dueWithStudent.paidDue.copy(isVerified = true)
+        paidDuesCollectionRef
+            .document(updatedDue.paidDuesId)
+            .set(updatedDue)
+            .addOnSuccessListener {
+                fetchPaidDues()
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+    }
+
+    // Fetch savings from Firestore
+    private fun fetchSavings() {
+        savingsCollectionRef
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    // Handle errors
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val savings = snapshot.documents.mapNotNull { document ->
+                        document.toObject(Savings::class.java)
+                    }
+                    _savingsList.value = savings
+                }
+            }
+    }
+
+    // Function to calculate withdrawal amount
+    fun calculateWithdrawAmount(savings: Savings): Double {
+        val interest = calculateInterestRate(savings.savingsAmount, savings.dueDate)
+        return savings.savingsAmount + (savings.savingsAmount * interest / 100)
+    }
+
+    // Function to find savings with the closest due date
+    fun getSavingsWithClosestDueDate(): Savings? {
+        return _savingsList.value.minByOrNull { savings ->
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val todayDate = dateFormat.parse(today)
+            val dueDate = dateFormat.parse(savings.dueDate)
+            dueDate.time - todayDate.time
+        }
+    }
+
+    private fun isRegNumber(query: String): Boolean {
+        val regNumberPattern = Regex("^[A-Z]{2,3}/\\d{4}/\\d{3,4}\$")
+        return regNumberPattern.matches(query)
     }
 
 }
