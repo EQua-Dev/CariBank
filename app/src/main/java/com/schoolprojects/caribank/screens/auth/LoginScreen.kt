@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.schoolprojects.caribank.R
 import com.schoolprojects.caribank.components.CustomSnackbar
 import com.schoolprojects.caribank.components.FlatButton
+import com.schoolprojects.caribank.components.LogoAndBankName
 import com.schoolprojects.caribank.navigation.Screen
 import com.schoolprojects.caribank.utils.Common
 import com.schoolprojects.caribank.utils.toast
@@ -63,6 +64,11 @@ fun LoginScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+
+            // Display Logo and Bank Name
+            LogoAndBankName()
+
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Login", style = MaterialTheme.typography.headlineMedium)
 
             Spacer(modifier = Modifier.height(16.dp))
