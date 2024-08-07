@@ -350,7 +350,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun isValidMatricNumberFormat(text: String): Boolean {
-        val customFormatRegex = Regex("^CST/\\d{4}/\\d+$")
+        val customFormatRegex = Regex("^CS/\\d{4}/\\d+$")
         if (!customFormatRegex.matches(text)) {
             return false
         }

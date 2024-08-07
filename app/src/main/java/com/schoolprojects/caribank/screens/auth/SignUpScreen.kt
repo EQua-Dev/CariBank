@@ -110,7 +110,7 @@ fun SignUpScreen(
                 onValueChange = { authViewModel.updateMatricNo(it) },
                 label = "Reg Number",
                 placeholder = "Reg Number",
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Text,
                 modifier = Modifier.fillMaxWidth()
             )
 
